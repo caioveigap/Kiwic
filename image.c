@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/mman.h>
 
-
+#define SUPPORTED_MAXVAL 255
 
 PPM_Image* ppm_read_image(const char *filename) {
     FILE *file = fopen(filename, "rb");
@@ -24,20 +24,30 @@ PPM_Image* ppm_read_image(const char *filename) {
     rewind(file);
 
     PPM_Image *result = malloc(sizeof(PPM_Image));
-
+    
     char type[3] = {0};
+
+    int c = fgetc(file);
+    if (c == '#') {
+        fscanf(file, "%*[^ \t\n\r\v\f]");
+    } else { 
+        ungetc(c, file); 
+    }
+
     fscanf(file, "%2s", type);
     if (strcmp(type, "P6") != 0) {
         // fprintf em vez de perror: aqui nenhuma chamada de sistema falhou, então o errno
         // não diz nada sobre o erro (o perror imprimiria algo como "...: Success").
         fprintf(stderr, "Error: This is not a .ppm (P6) file!\n");
-        free(result); // libera o PPM_Image alocado acima, que vazava neste caminho de erro
-        fclose(file);
-        return NULL;
+        goto error;
     }
 
     fscanf(file, "%u %u", &(result->cols), &(result->rows));
     fscanf(file, "%u", &(result->maxval));
+    if (result->maxval != SUPPORTED_MAXVAL) {
+        fprintf(stdout, "Error: unsupported maxval\n");
+        goto error;
+    }
 
     off_t offset = ftell(file);
 
@@ -45,13 +55,8 @@ PPM_Image* ppm_read_image(const char *filename) {
 
     if(rawdata == MAP_FAILED) {
         perror("Error: mmap error.");
-        free(result); // libera o PPM_Image, que vazava neste caminho de erro
-        fclose(file);
-        return NULL;
+        goto error;
     }
-
-    uint8_t bytes_per_value = (result->maxval > 256 ? 2 : 1);
-    const int values_per_pixel = 3;
 
     uint8_t *pixeldata = rawdata + offset + 1;
 
@@ -59,45 +64,39 @@ PPM_Image* ppm_read_image(const char *filename) {
     // cabeçalho promete. Sem isso, um arquivo truncado faria o loop abaixo ler além do
     // fim do mapeamento (SIGBUS/SIGSEGV ou lixo). Conta feita em size_t para não
     // estourar em uint32_t com imagens grandes.
+    size_t data_size = (size_t)result->rows * (size_t)result->cols * sizeof(Pixel);
     size_t header_size = (size_t)offset + 1;
-    size_t data_size = (size_t)result->rows * result->cols * values_per_pixel * bytes_per_value;
+    
     if (header_size + data_size > filesize) {
         fprintf(stderr, "Error: file is smaller than its header says (truncated?)\n");
         munmap(rawdata, filesize);
-        free(result);
-        fclose(file);
-        return NULL;
+        goto error;
     }
+    
+    result->pixels = malloc(data_size);
+    memcpy(result->pixels, pixeldata, data_size);
+    
 
-    result->pixels = calloc(result->rows, sizeof(Pixel*));
-    for (int y=0; y < result->rows; y++) {
-        result->pixels[y] = calloc(result->cols, sizeof(Pixel));
-        for (int x=0; x < result->cols; x++) {
-            uint8_t *pixel_start = pixeldata + (y * result->cols * values_per_pixel * bytes_per_value) + (x * values_per_pixel * bytes_per_value);
-
-            if (bytes_per_value == 2) {
-                // 16 bits: cada amostra ocupa 2 bytes em big-endian (byte mais
-                // significativo primeiro), como manda a spec Netpbm. Montamos o valor
-                // manualmente para não depender do endianness da máquina (x86 é little-endian).
-                result->pixels[y][x].r = (pixel_start[0] << 8) | pixel_start[1];
-                result->pixels[y][x].g = (pixel_start[2] << 8) | pixel_start[3];
-                result->pixels[y][x].b = (pixel_start[4] << 8) | pixel_start[5];
-            } else {
-                result->pixels[y][x].r = pixel_start[0];
-                result->pixels[y][x].g = pixel_start[1];
-                result->pixels[y][x].b = pixel_start[2];
-            }
-        }
-    }
 
     // Os pixels já foram copiados para result->pixels, então o mapeamento e o arquivo
     // não são mais necessários. Antes, os dois vazavam a cada leitura.
     munmap(rawdata, filesize);
     fclose(file);
-
     return result;
+
+    error:
+        free(result);
+        if (file) fclose(file);
+        return NULL;
 }
-bool ppm_write_image(const char *filename, PPM_Image *image) {
+
+
+bool ppm_write_image(const char *filename, const PPM_Image *image) {
+    if (image == NULL) {
+        fprintf(stdout, "Error: invalid image\n");
+        return false;
+    }
+
     FILE *file = fopen(filename, "wb");
 
     if (file == NULL) {
@@ -105,42 +104,20 @@ bool ppm_write_image(const char *filename, PPM_Image *image) {
         return false;
     }
 
+
     fprintf(file, "P6\n%u %u\n%u\n", image->cols, image->rows, image->maxval);
 
-    uint8_t bytes_per_value = (image->maxval > 256 ? 2 : 1);
-    for (int y=0; y < image->rows; y++) {
-        for (int x=0; x < image->cols; x++) {
-            Pixel p = image->pixels[y][x];
-            if (bytes_per_value == 2) {
-                // 16 bits: gravamos cada amostra em big-endian (byte alto primeiro), como
-                // manda a spec. Um fwrite direto do uint16_t gravaria na ordem da máquina
-                // (little-endian no x86), invertendo os bytes.
-                uint8_t bytes[6] = {
-                    p.r >> 8, p.r & 0xFF,
-                    p.g >> 8, p.g & 0xFF,
-                    p.b >> 8, p.b & 0xFF,
-                };
-                fwrite(bytes, 1, sizeof(bytes), file);
-            } else {
-                // 8 bits: as amostras agora são uint16_t, então convertemos para 1 byte
-                // antes de gravar (o fwrite antigo de &r gravaria o byte errado/metade do valor).
-                uint8_t bytes[3] = { p.r, p.g, p.b };
-                fwrite(bytes, 1, sizeof(bytes), file);
-            }
-        }
-    }
+    size_t pixel_array_size = (size_t)image->cols * image->rows;
+    
+    fwrite(image->pixels, sizeof(Pixel), pixel_array_size, file);
 
-    // fclose descarrega o buffer do FILE no disco e libera o descritor. Antes isso
-    // vazava e só funcionava porque o exit() do programa descarrega os buffers.
     fclose(file);
     return true;
 }
 
+
 void ppm_destroy(PPM_Image *image) {
-    for (int y=0; y < image->rows; y++) {
-        free(image->pixels[y]);
-    }
-    // Antes só as linhas eram liberadas; o array de ponteiros e a própria struct vazavam.
+    if (image == NULL) return;
     free(image->pixels);
     free(image);
 }
