@@ -15,6 +15,7 @@ Sempre me aponte para uma ou mais referências que me ajudarão a entender um co
 - Em revisões: apontar problemas e explicar o porquê; não reescrever.
 - Ao explicar, citar referências (spec, livro, artigo) quando possível.
 - Quando indicar uma referência nova, adicione-a no arquivo `refs.md`, com um link e uma descrição.
+- Não adicione referências fora de escopo. Se achar importante a leitura de um tópico extra, fale no chat. Não polua o refs.md, ele deve conter apenas as referências mais importantes
 
 ## Estado atual
 Nada feito ainda.

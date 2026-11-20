@@ -11,6 +11,8 @@
 - [Untangling Lifetimes: The Arena Allocator (Ryan Fleury)](https://www.rfleury.com/p/untangling-lifetimes-the-arena-allocator) — Por que e como usar arenas para gerenciar memória em C.
 - [Data-Oriented Design and C++ (Mike Acton, CppCon 2014)](https://www.youtube.com/watch?v=rX0ItVEVjHc) — Palestra sobre pensar em dados, cache e o hardware real.
 - [Computer Systems: A Programmer's Perspective](https://csapp.cs.cmu.edu/) — Memória, cache, linking, assembly. Base de sistemas.
+- 
+- [GCC — Options for Linking](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html) — Documentação oficial do `-l`, incluindo a observação de que a posição dele na linha de comando importa.
 - [Computer Enhance / Performance-Aware Programming (Casey Muratori)](https://www.computerenhance.com/) — Curso sobre performance real: CPU, cache, SIMD, profiling.
 - [RAD Debugger (código-fonte)](https://github.com/EpicGamesExt/raddebugger) — Codebase C moderno com camadas base/OS bem desenhadas. Referência de design, não tutorial.
 - [stb (Sean Barrett)](https://github.com/nothings/stb) — Bibliotecas single-header em C. Ótimo para ler (ex.: stb_image, stb_truetype).
@@ -35,6 +37,10 @@
 - [What every coder should know about gamma (John Novak)](https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/) — Por que blending e gradientes ficam errados sem considerar sRGB/gamma.
 - Porter & Duff, "Compositing Digital Images" (SIGGRAPH 1984) — Artigo que define alpha compositing e alpha pré-multiplicado.
 
+### Sombras
+- [2D Visibility - Raycasting Shadow](https://redblobgames.com/articles/visibility/)
+- [How to create 2D visibility/shadow effects for your game](https://ncase.me/sight-and-light/)
+
 ### 3D / rasterização
 - [Computer Graphics from Scratch (Gabriel Gambetta)](https://gabrielgambetta.com/computer-graphics-from-scratch/) — Livro gratuito: raytracer e rasterizador do zero, só com "put_pixel". Melhor ponto de partida.
 - [tinyrenderer (Dmitry Sokolov)](https://github.com/ssloy/tinyrenderer/wiki) — Rasterizador 3D em ~500 linhas, passo a passo: linhas, triângulos, z-buffer, câmera, shading.
@@ -49,3 +55,15 @@
 - [Chris Hecker — Perspective Texture Mapping](https://www.chrishecker.com/Miscellaneous_Technical_Articles) — Série clássica sobre texturização com correção de perspectiva e regras de preenchimento.
 - [Graphics Programming Black Book (Michael Abrash)](https://github.com/jagregory/abrash-black-book) — Clássico sobre otimização de renderização em software (inclui o renderizador do Quake). Hardware antigo, mentalidade atemporal.
 - [Real-Time Rendering](https://www.realtimerendering.com/) — Referência enciclopédica de rendering em tempo real. Para depois.
+
+## Livro-texto
+- Foley, van Dam, Feiner, Hughes — *Computer Graphics: Principles and Practice, 2nd Edition in C* (Addison-Wesley, 1995) — Livro principal de estudo do projeto. Núcleo para a engine: caps. 3 (primitivas 2D, clipping, antialiasing), 5 (transformações), 6 (viewing 3D), 13 (cor), 15 (visibilidade/z-buffer), 16 (iluminação e shading), 17 (compositing, filtragem de imagem).
+
+## Formatos de imagem / saída
+- [Netpbm — especificação do formato PPM](https://netpbm.sourceforge.net/doc/ppm.html) — Spec oficial do PPM (P3 ASCII e P6 binário): cabeçalho, maxval, ordem das linhas e dos canais.
+- 
+- [Ray Tracing in One Weekend (Peter Shirley)](https://raytracing.github.io/books/RayTracingInOneWeekend.html) — Livro curto e gratuito que começa exatamente escrevendo um PPM; bom complemento (ray tracing em vez de rasterização).
+- [The byte order fallacy (Rob Pike)](https://commandcenter.blogspot.com/2012/04/byte-order-fallacy.html) — Por que ler/gravar formatos binários com shifts e máscaras (`(b[0]<<8)|b[1]`) em vez de `#ifdef` de endianness ou cast de ponteiro: o código fica correto em qualquer máquina.
+
+## GPU / transição software → GPU
+- [Rasterization Rules — Direct3D 11 (Microsoft Learn)](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules) — Como GPUs modernas decidem quais pixels um triângulo cobre (centro do pixel em .5, regra top-left). Útil para escolher convenções no renderer em software que batam com a GPU.
