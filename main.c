@@ -16,15 +16,6 @@ que transforma as coordenadas do mundo antes de desenhar no canvas.
 #include <string.h>
 #include "image.h"
 
-/* CONSTANTS */
-#define WIDTH 400
-#define HEIGHT 400
-
-typedef struct Canva {
-    uint32_t width, height;
-    uint32_t *pixels;
-    int stride;
-} Canva;
 
 
 void get_output_filename(const char *filename_in, char *filename_out) {

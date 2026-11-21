@@ -4,7 +4,11 @@
 #include <string.h>
 #include <sys/mman.h>
 
+
 #define SUPPORTED_MAXVAL 255
+
+/* FUNCTION DEFS */
+PPM_Image* ppm_create_image(size_t width, size_t height);
 
 PPM_Image* ppm_read_image(const char *filename) {
     FILE *file = fopen(filename, "rb");
@@ -115,6 +119,41 @@ bool ppm_write_image(const char *filename, const PPM_Image *image) {
     return true;
 }
 
+bool ppm_save_pixels(uint32_t *pixels, size_t width, size_t height, const char *file_path) {
+    PPM_Image *image = ppm_create_image(width, height);
+    if (!image) return false;
+
+    // uin32_t RGB Format  0XAABBGGRR
+    for (size_t i = 0; i < width*height; i++) {
+        uint32_t pixel = pixels[i];
+        Pixel p = {
+            (pixel>>(8*0))&0xFF,
+            (pixel>>(8*1))&0xFF,
+            (pixel>>(8*2))&0xFF
+        };
+        image->pixels[i] = p;
+    }
+
+    if (ppm_write_image(file_path, image)) {
+        return true;
+    }
+    return false;
+}
+
+PPM_Image* ppm_create_image(size_t width, size_t height) {
+    PPM_Image *new = malloc(sizeof(PPM_Image));
+    if (!new) return NULL;
+    new->cols = width,
+    new->rows = height;
+    new->pixels = malloc(width * height * sizeof(Pixel));
+
+    if (!new->pixels) {
+        ppm_destroy(new);
+        return NULL;
+    }
+
+    return new;
+}
 
 void ppm_destroy(PPM_Image *image) {
     if (image == NULL) return;
