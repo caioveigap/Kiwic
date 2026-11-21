@@ -135,8 +135,10 @@ bool ppm_save_pixels(uint32_t *pixels, size_t width, size_t height, const char *
     }
 
     if (ppm_write_image(file_path, image)) {
+        ppm_destroy(image);
         return true;
     }
+    ppm_destroy(image);
     return false;
 }
 
@@ -145,6 +147,7 @@ PPM_Image* ppm_create_image(size_t width, size_t height) {
     if (!new) return NULL;
     new->cols = width,
     new->rows = height;
+    new->maxval = SUPPORTED_MAXVAL;
     new->pixels = malloc(width * height * sizeof(Pixel));
 
     if (!new->pixels) {

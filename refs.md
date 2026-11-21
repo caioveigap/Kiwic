@@ -36,6 +36,7 @@
 - [The Beauty of Bresenham's Algorithm (Alois Zingl)](http://members.chello.at/~easyfilter/bresenham.html) — Linhas, círculos, elipses e curvas com Bresenham, com derivação e código.
 - [What every coder should know about gamma (John Novak)](https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/) — Por que blending e gradientes ficam errados sem considerar sRGB/gamma.
 - Porter & Duff, "Compositing Digital Images" (SIGGRAPH 1984) — Artigo que define alpha compositing e alpha pré-multiplicado.
+- [Image Stride (Microsoft Learn)](https://learn.microsoft.com/en-us/windows/win32/medfound/image-stride) — Explica stride/pitch com diagramas: padding no fim das linhas, stride positivo (top-down) vs negativo (bottom-up).
 
 ### Sombras
 - [2D Visibility - Raycasting Shadow](https://redblobgames.com/articles/visibility/)
