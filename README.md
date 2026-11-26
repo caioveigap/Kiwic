@@ -6,7 +6,8 @@ Este projeto busca criar uma game engine totalmente do zero utilizando somente a
 <span style="color:red">**Disclaimer:**</span> Futuramente irei mudar a API gráfica para uma stack baseada em **OpenGL + SL3**.<br>
 Porém isto será feito somente quando a engine estiver madura o suficiente.
 
-![Retângulos aninhados renderizados pela engine](docs/images/nested_rects.png)
+![Linhas aleatórias renderizados pela engine](docs/images/lines.png)
+![Triângulo renderizado pela engine](docs/images/green_triangle.png)
 
 *Saída atual: retângulos aninhados, cada um desenhado numa view do bitmap anterior (renderização 100% em software, exportada como `.ppm`).*
 

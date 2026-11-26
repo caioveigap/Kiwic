@@ -16,6 +16,7 @@
 - [Computer Enhance / Performance-Aware Programming (Casey Muratori)](https://www.computerenhance.com/) — Curso sobre performance real: CPU, cache, SIMD, profiling.
 - [RAD Debugger (código-fonte)](https://github.com/EpicGamesExt/raddebugger) — Codebase C moderno com camadas base/OS bem desenhadas. Referência de design, não tutorial.
 - [stb (Sean Barrett)](https://github.com/nothings/stb) — Bibliotecas single-header em C. Ótimo para ler (ex.: stb_image, stb_truetype).
+- [rand(3) — Linux man-pages](https://man7.org/linux/man-pages/man3/rand.3.html) — Documenta `rand()` e `srand()`, incluindo como inicializar o gerador uma vez e a repetibilidade da sequência com a mesma semente.
 
 ## Game loop / tempo
 - [Fix Your Timestep! (Glenn Fiedler)](https://gafferongames.com/post/fix_your_timestep/) — Timestep fixo vs variável, acumulador, interpolação.
@@ -34,6 +35,7 @@
 ## Renderização em software
 ### 2D
 - [The Beauty of Bresenham's Algorithm (Alois Zingl)](http://members.chello.at/~easyfilter/bresenham.html) — Linhas, círculos, elipses e curvas com Bresenham, com derivação e código.
+- [Bresenham's line algorithm — Wikipedia](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm) — Derivação do algoritmo e a seção "All cases": pseudocódigo de plotLineLow/plotLineHigh tratando os 8 octantes por simetria.
 - [What every coder should know about gamma (John Novak)](https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/) — Por que blending e gradientes ficam errados sem considerar sRGB/gamma.
 - Porter & Duff, "Compositing Digital Images" (SIGGRAPH 1984) — Artigo que define alpha compositing e alpha pré-multiplicado.
 - [Image Stride (Microsoft Learn)](https://learn.microsoft.com/en-us/windows/win32/medfound/image-stride) — Explica stride/pitch com diagramas: padding no fim das linhas, stride positivo (top-down) vs negativo (bottom-up).
