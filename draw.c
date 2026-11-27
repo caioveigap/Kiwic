@@ -19,8 +19,8 @@ que transforma as coordenadas do mundo antes de desenhar no canvas.
 #include "types.h"
 #include "fb.h"
 
-#define DEFAULT_WIDTH 128
-#define DEFAULT_HEIGHT 128
+#define DEFAULT_WIDTH 512
+#define DEFAULT_HEIGHT 512
 
 
 
@@ -46,57 +46,8 @@ void draw_rect(Framebuffer fb, int x0, int y0, int w, int h, uint32_t color) {
 }
 
 
-/* Different line drawing algorithms implementations */
-void line_v1(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
-    float m = (float)(y1 - y0) / (float)(x1 - x0);
-    float b = y0 - m * x0;
-
-    for (int x = x0; x <= x1; x++) {
-        float y = m * x + b; // Classic formula: y = mx + b
-        put_pixel(fb, x, (int)round_f(y), color);
-    }
-}
-
-void line_v2(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
-    if (x0 > x1) {
-        swap_int(&x0, &x1);
-        swap_int(&y0, &y1);
-    }
-    float m = (float)(y1 - y0) / (float)(x1 - x0);
-    float b = y0 - m * x0;
-
-    printf("Slope: %f (%d - %d/ %d - %d)\n", m, y1, y0, x1, x0);
-
-    for (int x = x0; x <= x1; x++) {
-        float y = m * x + b; // Classic formula: y = mx + b
-        put_pixel(fb, x, (int)round_f(y), color);
-    }
-}
-
-void line_v3(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
-    bool steep = abs(y1 - y0) > abs(x1 - x0);
-    if (steep) {
-        swap_int(&x0, &y0);
-        swap_int(&x1, &y1);
-    }
-
-    if (x0 > x1) {
-        swap_int(&x0, &x1);
-        swap_int(&y0, &y1);
-    }
-
-    int dx = x1 - x0;
-    for (int x = x0; x <= x1; x++) {
-        float t = dx ? (float)(x - x0) / dx : 0.0f;
-        int y = (int)round_f(y0 + t * (y1 - y0));
-        if (steep) put_pixel(fb, y, x, color);
-        else put_pixel(fb, x, y, color);
-    }
-
-}
-
 // DDA Algorithm
-void line_v4(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
+void draw_line_DDA(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
     bool steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
         swap_int(&x0, &y0);
@@ -109,7 +60,7 @@ void line_v4(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
     }
 
     int dx = x1 - x0;
-    float m = dx ? (float)(y1 - y0) / dx : 0.0f;
+    float m = dx ? (float)(y1 - y0) / dx : 0.0f; // check if line is totally vertical
     float y = (float)y0;
     for (int x = x0; x <= x1; x++) {
         int yi = (int)round_f(y);
@@ -117,7 +68,33 @@ void line_v4(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) {
         else put_pixel(fb, x, yi, color);
         y += m;
     }
+}
 
+void draw_line(Framebuffer fb, int x0, int y0, int x1, int y1, uint32_t color) { // bresenham
+    bool steep = abs(y1 - y0) > abs(x1 - x0);
+    if (steep)   { swap_int(&x0, &y0); swap_int(&x1, &y1); }
+    if (x0 > x1) { swap_int(&x0, &x1); swap_int(&y0, &y1); }
+
+    int dx = x1 - x0;
+    int dy = abs(y1 - y0);
+    int sy = (y1 > y0) ? 1 : -1;
+
+    int D = 2 * dy - dx;
+    int inc_e = 2 * dy;
+    int inc_ne = 2 * (dy - dx);
+    int y = y0;
+
+    for (int x = x0; x <= x1; x++) {
+        if (steep) put_pixel(fb, y, x, color);
+        else put_pixel(fb, x, y, color);
+
+        if (D > 0) {
+            y += sy;
+            D += inc_ne;
+        } else {
+            D += inc_e;
+        }
+    }
 }
 
 
@@ -143,8 +120,7 @@ void draw_random_line(Framebuffer fb) {
     int color_idx = rand() % size;
     uint32_t color = G_COLORS[color_idx];
 
-    line_v4(fb, rix, riy, rfx, rfy, color);
-
+    line_v5(fb, rix, riy, rfx, rfy, color);
 }
 
 int main(int argc, char **argv) {
@@ -158,16 +134,10 @@ int main(int argc, char **argv) {
     fb_clear(fb, GRAY);
 
     srand((unsigned)time(NULL));
-    // for (int i = 0; i < 50; i++) {
-    //     draw_random_line(fb);
-    // }
+    for (int i = 0; i < (1 << 24); i++) {
+        draw_random_line(fb);   
+    }
 
-    Vec2 v1 = {30, 90};
-    Vec2 v2 = {98, 90};
-    Vec2 v3 = {64, 30};
-
-    draw_triangle_lines(fb, v1, v2, v3, GREEN);
-    draw_rect(fb, 30, 30, 60, 50, RED);
     ppm_save_pixels(fb.pixels, fb.width, fb.height, argv[1]);
 
     fb_destroy(fb);
